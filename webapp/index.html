@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keycloak + NGINX Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="login-section" class="section">
+            <h1>Login</h1>
+            <p>Klik op de knop hieronder om in te loggen via Keycloak.</p>
+            <form id="login-form">
+                <button type="submit">Inloggen met Keycloak</button>
+            </form>
+            <div id="error-message" class="error"></div>
+        </div>
+
+        <div id="data-section" class="section hidden">
+            <h1>Welkom, <span id="user-name"></span>!</h1>
+            <button id="logout-btn">Uitloggen</button>
+            <button id="fetch-data-btn">Haal Data Op</button>
+            <div id="data-container">
+                <h2>Database Data:</h2>
+                <div id="data-content" class="data-content"></div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

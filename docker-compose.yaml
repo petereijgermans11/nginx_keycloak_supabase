@@ -1,0 +1,63 @@
+services:
+  nginx:
+    container_name: nginx-gateway
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    depends_on:
+      - keycloak
+      - api
+
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:26.0
+    volumes:
+      - ./keycloak/:/home/keycloak/realms/
+    entrypoint: ["/bin/bash"]
+    command: |
+      -c
+      "/opt/keycloak/bin/kc.sh import --dir /home/keycloak/realms/ &&
+      /opt/keycloak/bin/kc.sh start-dev"
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=secret
+      - KC_HOSTNAME_URL=http://localhost:8080
+      - KC_HOSTNAME_ADMIN_URL=http://localhost:8180
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_HTTP_ENABLED=true
+    ports:
+      - "8180:8080"
+    networks:
+      - app-network
+
+  api:
+    container_name: api-server
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    depends_on:
+      - keycloak
+
+  webapp:
+    container_name: webapp
+    image: nginx:alpine
+    volumes:
+      - ./webapp:/usr/share/nginx/html
+    ports:
+      - "8081:80"
+    networks:
+      - app-network
+
+networks:
+  app-network:
