@@ -1,77 +1,77 @@
 # NGINX + Keycloak + Supabase Integration
 
-Een complete demonstratie van hoe Keycloak, NGINX Gateway (met OpenResty) en Supabase samenwerken om een beveiligde API te creëren met OIDC Authorization Code Flow en database integratie.
+A complete demonstration of how Keycloak, NGINX Gateway (with OpenResty), and Supabase work together to create a secured API with OIDC Authorization Code Flow and database integration.
 
-## 📋 Overzicht
+## 📋 Overview
 
-Dit project toont een volledige authenticatie flow met OIDC Authorization Code Flow:
-1. **Keycloak** - Identity Provider voor gebruikersauthenticatie
-2. **NGINX Gateway (OpenResty)** - API Gateway met custom OIDC authenticatie module
-3. **Supabase** - Database backend voor data opslag
-4. **Web App** - Frontend applicatie voor gebruikersinteractie
-5. **API Server** - Node.js/Express backend die data ophaalt uit Supabase
+This project shows a complete authentication flow with OIDC Authorization Code Flow:
+1. **Keycloak** - Identity Provider for user authentication
+2. **NGINX Gateway (OpenResty)** - API Gateway with custom OIDC authentication module
+3. **Supabase** - Database backend for data storage
+4. **Web App** - Frontend application for user interaction
+5. **API Server** - Node.js/Express backend that fetches data from Supabase
 
 ## 🛠️ Stack
 
 - **Docker & Docker Compose** - Container orchestration
 - **Keycloak v26.0** - Identity and Access Management
-- **NGINX/OpenResty** - API Gateway met custom Lua OIDC module
-- **Custom OIDC Helper** - Lua module voor OIDC authenticatie met correcte port forwarding ondersteuning
-- **lua-resty-http** - HTTP client voor Lua
+- **NGINX/OpenResty** - API Gateway with custom Lua OIDC module
+- **Custom OIDC Helper** - Lua module for OIDC authentication with correct port forwarding support
+- **lua-resty-http** - HTTP client for Lua
 - **Node.js/Express** - Backend API server
-- **Supabase** - PostgreSQL database met REST API
-- **Nginx** - Web server voor frontend
-- **HTML/CSS/JavaScript** - Frontend web applicatie
+- **Supabase** - PostgreSQL database with REST API
+- **Nginx** - Web server for frontend
+- **HTML/CSS/JavaScript** - Frontend web application
 
-## 📁 Project Structuur
+## 📁 Project Structure
 
 ```
 nginx_keycloak_api/
 ├── api/                          # Backend API server
-│   ├── Dockerfile               # Docker image voor API server
+│   ├── Dockerfile               # Docker image for API server
 │   ├── package.json             # Node.js dependencies
-│   └── server.js                # Express server met routes
-├── nginx/                        # NGINX Gateway configuratie
-│   ├── Dockerfile               # OpenResty image met Lua modules
-│   └── nginx.conf               # NGINX config met OIDC authenticatie
-├── keycloak/                     # Keycloak realm configuratie
-│   └── webapp-realm.json        # Realm export met users, clients, keys
-├── webapp/                       # Frontend applicatie
-│   ├── index.html               # HTML structuur
-│   ├── app.js                   # Frontend JavaScript logica
+│   └── server.js                # Express server with routes
+├── nginx/                        # NGINX Gateway configuration
+│   ├── Dockerfile               # OpenResty image with Lua modules
+│   └── nginx.conf               # NGINX config with OIDC authentication
+├── keycloak/                     # Keycloak realm configuration
+│   └── webapp-realm.json        # Realm export with users, clients, keys
+├── webapp/                       # Frontend application
+│   ├── index.html               # HTML structure
+│   ├── app.js                   # Frontend JavaScript logic
 │   └── style.css                # Styling
-├── docker-compose.yaml          # Docker services configuratie
-├── .env                         # Environment variabelen (niet in git)
-└── README.md                    # Deze file
+├── docker-compose.yaml          # Docker services configuration
+├── .env                         # Environment variables (not in git)
+└── README.md                    # This file
 ```
 
-## 🔧 Configuratie
+## 🔧 Configuration
 
 ### 1. Supabase Setup
 
-Maak een `.env` bestand in de root directory:
+Create a `.env` file in the root directory:
 
 ```env
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-anon-key
 ```
 
-**Hoe Supabase credentials te krijgen:**
-1. Ga naar [supabase.com](https://supabase.com)
-2. Maak een nieuw project aan
-3. Ga naar Project Settings > API
-4. Kopieer de `Project URL` en `anon public` key
+**How to get Supabase credentials:**
+1. Go to [supabase.com](https://supabase.com)
+2. Create a new project
+3. Go to Project Settings > API
+4. Copy the `Project URL` and `anon public` key
 
-**Belangrijk:** Pas de tabelnaam aan in `api/server.js`:
+**Important:** Adjust the table name in `api/server.js`:
 ```javascript
-.from('entities')  // Vervang 'entities' met jouw tabelnaam
+.from('entities')  // Replace 'entities' with your table name
 ```
 
-### 2. Keycloak Configuratie
+### 2. Keycloak Configuration
 
-De Keycloak realm is geconfigureerd in `keycloak/webapp-realm.json`:
+The Keycloak realm is configured in `keycloak/webapp-realm.json`:
 - **Realm:** `nginx_keycloak_api`
-- **Client:** `nginx-client` (confidential client met secret)
+- **Client:** `nginx-client` (confidential client with secret)
 - **User:** `zookabazooka` / `password`
 - **Admin:** `admin` / `secret` (Keycloak admin console)
 
@@ -80,112 +80,112 @@ De Keycloak realm is geconfigureerd in `keycloak/webapp-realm.json`:
 - Username: `admin`
 - Password: `secret`
 
-**Belangrijk:** Het client secret moet overeenkomen tussen:
+**Important:** The client secret must match between:
 - Keycloak Admin Console (Clients → nginx-client → Credentials)
-- `nginx/nginx.conf` (regel 42 en 100)
+- `nginx/nginx.conf` (lines 64 and 125)
 
-### 3. NGINX Gateway Configuratie
+### 3. NGINX Gateway Configuration
 
-NGINX Gateway is geconfigureerd in `nginx/nginx.conf` met:
-- **OIDC Authenticatie:** Via `lua-resty-openidc` module
-- **Session Management:** Cookie-based sessies met encryptie
+NGINX Gateway is configured in `nginx/nginx.conf` with:
+- **OIDC Authentication:** Via `lua-resty-openidc` module
+- **Session Management:** Cookie-based sessions with encryption
 - **Routes:** 
-  - `/api/*` - Beschermd met OIDC authenticatie
+  - `/api/*` - Protected with OIDC authentication
   - `/callback` - OIDC callback endpoint
-  - `/health` - Health check (publiek)
+  - `/health` - Health check (public)
 
 **OIDC Flow:**
-1. Gebruiker probeert `/api/data` te benaderen
-2. NGINX detecteert geen sessie → redirect naar Keycloak login
-3. Gebruiker logt in bij Keycloak
-4. Keycloak redirect terug naar `/callback` met authorization code
-5. NGINX wisselt code om voor tokens
-6. Sessie wordt opgeslagen in cookie
-7. Gebruiker wordt doorgestuurd naar `/api/data`
-8. NGINX valideert sessie en voegt JWT token toe aan request headers
-9. API server ontvangt request met `Authorization: Bearer <token>`
+1. User tries to access `/api/data`
+2. NGINX detects no session → redirect to Keycloak login
+3. User logs in at Keycloak
+4. Keycloak redirects back to `/callback` with authorization code
+5. NGINX exchanges code for tokens
+6. Session is stored in cookie
+7. User is redirected to the webapp
+8. NGINX validates session and adds JWT token to request headers
+9. API server receives request with `Authorization: Bearer <token>`
 
-### 4. API Server Configuratie
+### 4. API Server Configuration
 
-De API server (`api/server.js`) is vereenvoudigd:
-- **Geen OIDC logica** - Alle authenticatie gebeurt in NGINX gateway
+The API server (`api/server.js`) is simplified:
+- **No OIDC logic** - All authentication happens in NGINX gateway
 - **Endpoints:**
   - `/health` - Health check
-  - `/api/data` - Haalt data op uit Supabase (ontvangt JWT token in headers)
+  - `/api/data` - Fetches data from Supabase (receives JWT token in headers)
 
-## 🚀 Opstarten
+## 🚀 Getting Started
 
-### Vereisten
+### Requirements
 
-- Docker Desktop geïnstalleerd
-- Docker Compose v2 (gebruik `docker compose` in plaats van `docker-compose`)
-- Supabase project met een tabel (bijv. `entities`)
+- Docker Desktop installed
+- Docker Compose v2 (use `docker compose` instead of `docker-compose`)
+- Supabase project with a table (e.g., `entities`)
 
-### Stap 1: Environment Setup
+### Step 1: Environment Setup
 
-1. Maak een `.env` bestand:
+1. Create a `.env` file:
    ```bash
-   # Maak handmatig aan:
+   # Create manually:
    ```
 
-2. Vul je Supabase credentials in:
+2. Fill in your Supabase credentials:
    ```env
    SUPABASE_URL=https://your-project.supabase.co
    SUPABASE_KEY=your-anon-key
    ```
 
-3. Pas de tabelnaam aan in `api/server.js`
+3. Adjust the table name in `api/server.js`
 
-4. **Synchroniseer client secret:**
-   - Haal het client secret op uit Keycloak Admin Console
-   - Pas `nginx/nginx.conf` aan (regel 42 en 100) met het echte secret
-   - Of pas het secret in Keycloak aan naar `ECHTE_SECRET`
+4. **Synchronize client secret:**
+   - Retrieve the client secret from Keycloak Admin Console
+   - Update `nginx/nginx.conf` (lines 64 and 125) with the real secret
+   - Or update the secret in Keycloak to `ECHTE_SECRET`
 
-### Stap 2: Start de Services
+### Step 2: Start the Services
 
 ```bash
-# Build en start alle containers
+# Build and start all containers
 docker compose up --build
 
-# Of in detached mode (op de achtergrond)
+# Or in detached mode (in the background)
 docker compose up --build -d
 ```
 
-Dit start:
-- **NGINX Gateway** op poort `8080`
-- **Keycloak** op poort `8180`
-- **API Server** op poort `3000`
-- **Web App** op poort `8081`
+This starts:
+- **NGINX Gateway** on port `8080`
+- **Keycloak** on port `8180`
+- **API Server** on port `3000`
+- **Web App** on port `8081`
 
-### Stap 3: Verifieer dat alles draait
+### Step 3: Verify Everything is Running
 
 ```bash
-# Controleer container status
+# Check container status
 docker compose ps
 
 # Test health check
 curl http://localhost:8080/health
 
-# Test API (zou redirect naar Keycloak moeten geven)
+# Test API (should give redirect to Keycloak)
 curl -L http://localhost:8080/api/data
 ```
 
-## 🎯 Gebruik
+## 🎯 Usage
 
 ### Web App
 
-1. Open je browser: `http://localhost:8081`
-2. Klik op "Login" of "Haal Data Op"
-3. Je wordt automatisch doorgestuurd naar Keycloak login
-4. Login met:
+1. Open your browser: `http://localhost:8081`
+2. Click on "Login" or "Fetch Data"
+3. You will be automatically redirected to Keycloak login
+4. Login with:
    - **Username:** `zookabazooka`
    - **Password:** `password`
-5. Na inloggen word je terug gestuurd naar de webapp
-6. Klik op "Haal Data Op" om data uit Supabase te halen
+5. After login you will be redirected back to the webapp
+6. Click on "Fetch Data" to retrieve data from Supabase
 
 ### API Endpoints
 
-#### 1. Health Check (Publiek)
+#### 1. Health Check (Public)
 ```bash
 curl http://localhost:8080/health
 ```
@@ -195,16 +195,16 @@ curl http://localhost:8080/health
 OK
 ```
 
-#### 2. Data Ophalen (Beschermd - OIDC vereist)
+#### 2. Fetch Data (Protected - OIDC required)
 ```bash
-# Zonder authenticatie: redirect naar Keycloak
+# Without authentication: redirect to Keycloak
 curl -L http://localhost:8080/api/data
 
-# Met browser (automatische redirect en sessie):
-# Ga naar http://localhost:8081 en volg de flow
+# With browser (automatic redirect and session):
+# Go to http://localhost:8081 and follow the flow
 ```
 
-**Response (na authenticatie):**
+**Response (after authentication):**
 ```json
 [
   {
@@ -215,55 +215,55 @@ curl -L http://localhost:8080/api/data
 ]
 ```
 
-## 🔐 Authenticatie Flow
+## 🔐 Authentication Flow
 
-1. **Gebruiker probeert data op te halen** via webapp → `GET /api/data`
-2. **NGINX Gateway** detecteert geen geldige sessie
-3. **Redirect naar Keycloak** login pagina
-4. **Gebruiker logt in** bij Keycloak
-5. **Keycloak** valideert credentials en geeft authorization code terug
-6. **Redirect naar `/callback`** met authorization code
-7. **NGINX Gateway** wisselt code om voor access token en ID token
-8. **Sessie wordt opgeslagen** in encrypted cookie
-9. **Redirect naar `/api/data`**
-10. **NGINX Gateway** valideert sessie en voegt JWT token toe aan request headers
-11. **API server** ontvangt request met `Authorization: Bearer <token>`
-12. **API server** haalt data op uit Supabase
-13. **Data** wordt getoond in webapp
+1. **User tries to fetch data** via webapp → `GET /api/data`
+2. **NGINX Gateway** detects no valid session
+3. **Redirect to Keycloak** login page
+4. **User logs in** at Keycloak
+5. **Keycloak** validates credentials and returns authorization code
+6. **Redirect to `/callback`** with authorization code
+7. **NGINX Gateway** exchanges code for access token and ID token
+8. **Session is stored** in encrypted cookie
+9. **Redirect to webapp**
+10. **NGINX Gateway** validates session and adds JWT token to request headers
+11. **API server** receives request with `Authorization: Bearer <token>`
+12. **API server** fetches data from Supabase
+13. **Data** is displayed in webapp
 
-## 📊 Services Overzicht
+## 📊 Services Overview
 
-| Service | Poort | Beschrijving |
-|---------|-------|--------------|
-| NGINX Gateway | 8080 | API Gateway met OIDC authenticatie |
+| Service | Port | Description |
+|---------|------|-------------|
+| NGINX Gateway | 8080 | API Gateway with OIDC authentication |
 | Keycloak | 8180 | Identity Provider |
 | API Server | 3000 | Backend API (Express) |
 | Web App | 8081 | Frontend (Nginx) |
 
 ## 🐛 Troubleshooting
 
-### Containers starten niet
+### Containers don't start
 
 ```bash
-# Controleer logs
+# Check logs
 docker compose logs
 
-# Herstart containers
+# Restart containers
 docker compose restart
 
-# Stop en start opnieuw
+# Stop and start again
 docker compose down
 docker compose up --build
 ```
 
-### "500 Internal Server Error" of crypto errors
+### "500 Internal Server Error" or crypto errors
 
-1. **Controleer of `lua-resty-openssl` correct geïnstalleerd is:**
+1. **Check if `lua-resty-openssl` is correctly installed:**
    ```bash
    docker compose logs nginx | grep -i openssl
    ```
 
-2. **Herbuild NGINX container:**
+2. **Rebuild NGINX container:**
    ```bash
    docker compose build --no-cache nginx
    docker compose up nginx
@@ -271,127 +271,127 @@ docker compose up --build
 
 ### "auth_failed" errors
 
-1. **Controleer client secret:**
-   - Zorg dat het secret in `nginx/nginx.conf` overeenkomt met Keycloak
+1. **Check client secret:**
+   - Ensure the secret in `nginx/nginx.conf` matches Keycloak
    - Check Keycloak Admin Console: Clients → nginx-client → Credentials
 
-2. **Controleer Keycloak logs:**
+2. **Check Keycloak logs:**
    ```bash
    docker compose logs keycloak
    ```
 
-3. **Test Keycloak direct:**
+3. **Test Keycloak directly:**
    ```bash
    curl http://localhost:8180/realms/nginx_keycloak_api/.well-known/openid-configuration
    ```
 
-### Redirect loop of "Cannot GET /callback"
+### Redirect loop or "Cannot GET /callback"
 
-1. **Controleer redirect URI in Keycloak:**
-   - Moet exact zijn: `http://localhost:8080/callback`
+1. **Check redirect URI in Keycloak:**
+   - Must be exact: `http://localhost:8080/callback`
    - Check in Keycloak Admin Console: Clients → nginx-client → Settings → Valid Redirect URIs
 
-2. **Controleer NGINX logs:**
+2. **Check NGINX logs:**
    ```bash
    docker compose logs nginx
    ```
 
 ### CORS errors
 
-- CORS is geconfigureerd in `api/server.js`
-- Controleer browser console voor specifieke errors
-- Zorg dat `credentials: 'include'` wordt gebruikt in fetch requests
+- CORS is configured in `api/server.js`
+- Check browser console for specific errors
+- Ensure `credentials: 'include'` is used in fetch requests
 
-### Supabase data ophalen werkt niet
+### Supabase data fetch doesn't work
 
-1. **Controleer `.env` bestand:**
+1. **Check `.env` file:**
    ```bash
    cat .env
    ```
 
-2. **Controleer tabelnaam** in `api/server.js`
+2. **Check table name** in `api/server.js`
 
-3. **Test Supabase direct:**
+3. **Test Supabase directly:**
    ```bash
    curl https://your-project.supabase.co/rest/v1/entities \
      -H "apikey: YOUR_SUPABASE_KEY"
    ```
 
-4. **Controleer API server logs:**
+4. **Check API server logs:**
    ```bash
    docker compose logs api
    ```
 
 ## 🔄 Development
 
-### Code wijzigen
+### Changing code
 
-Na wijzigingen in code, herstart de betreffende service:
+After changes in code, restart the relevant service:
 
 ```bash
 # API server
 docker compose restart api
 
-# NGINX Gateway (na configuratie wijzigingen)
+# NGINX Gateway (after configuration changes)
 docker compose restart nginx
 
-# Webapp (wijzigingen zijn direct zichtbaar via volume mount)
-# Geen restart nodig
+# Webapp (changes are immediately visible via volume mount)
+# No restart needed
 ```
 
-### Logs bekijken
+### View logs
 
 ```bash
-# Alle services
+# All services
 docker compose logs -f
 
-# Specifieke service
+# Specific service
 docker compose logs -f api
 docker compose logs -f nginx
 docker compose logs -f keycloak
 ```
 
-### Containers stoppen
+### Stop containers
 
 ```bash
-# Stop containers (behoud data)
+# Stop containers (preserve data)
 docker compose stop
 
-# Stop en verwijder containers
+# Stop and remove containers
 docker compose down
 
-# Stop en verwijder alles inclusief volumes
+# Stop and remove everything including volumes
 docker compose down -v
 ```
 
-## 📝 Belangrijke Bestanden
+## 📝 Important Files
 
-- **`nginx/nginx.conf`** - NGINX configuratie met OIDC authenticatie
-- **`nginx/Dockerfile`** - OpenResty image met Lua modules
-- **`api/server.js`** - API server logica en endpoints
-- **`keycloak/webapp-realm.json`** - Keycloak realm configuratie
-- **`webapp/app.js`** - Frontend JavaScript logica
-- **`docker-compose.yaml`** - Docker services configuratie
+- **`nginx/nginx.conf`** - NGINX configuration with OIDC authentication
+- **`nginx/Dockerfile`** - OpenResty image with Lua modules
+- **`api/server.js`** - API server logic and endpoints
+- **`keycloak/webapp-realm.json`** - Keycloak realm configuration
+- **`webapp/app.js`** - Frontend JavaScript logic
+- **`docker-compose.yaml`** - Docker services configuration
 
 ## 🔒 Security Notes
 
-⚠️ **Development Only:** Deze configuratie is voor development doeleinden:
-- CORS staat open voor specifieke origins
-- Keycloak draait in development mode (H2 database)
-- SSL verify is uitgeschakeld (`ssl_verify = "no"`)
-- Geen HTTPS/TLS configuratie
-- Client secret staat in plain text in configuratie
+⚠️ **Development Only:** This configuration is for development purposes:
+- CORS is open for specific origins
+- Keycloak runs in development mode (H2 database)
+- SSL verify is disabled (`ssl_verify = "no"`)
+- No HTTPS/TLS configuration
+- Client secret is in plain text in configuration
 
-Voor productie:
-- Gebruik HTTPS
-- Beperk CORS origins
-- Gebruik Keycloak in production mode met PostgreSQL
-- Schakel SSL verify in
-- Gebruik environment variabelen voor secrets
-- Gebruik een secret management systeem
-- Configureer session security (secure cookies, same-site, etc.)
+For production:
+- Use HTTPS
+- Restrict CORS origins
+- Use Keycloak in production mode with PostgreSQL
+- Enable SSL verify
+- Use environment variables for secrets
+- Use a secret management system
+- Configure session security (secure cookies, same-site, etc.)
 
-## 📚 Meer Informatie
+## 📚 More Information
 
 - [NGINX/OpenResty Documentation](https://openresty.org/en/getting-started.html)
 - [lua-resty-openidc Documentation](https://github.com/zmartzone/lua-resty-openidc)
@@ -399,14 +399,14 @@ Voor productie:
 - [Supabase Documentation](https://supabase.com/docs)
 - [Express.js Documentation](https://expressjs.com/)
 
-## 🎓 Leerdoelen
+## 🎓 Learning Objectives
 
-Dit project demonstreert:
+This project demonstrates:
 - OIDC Authorization Code Flow
-- API Gateway pattern met NGINX/OpenResty
+- API Gateway pattern with NGINX/OpenResty
 - Server-side session management
 - JWT token handling
-- Microservices architectuur
+- Microservices architecture
 - CORS handling
 - Docker containerization
 - Lua scripting in NGINX
@@ -415,4 +415,4 @@ Dit project demonstreert:
 
 ---
 
-**Gemaakt voor educatieve doeleinden** - Toont een complete OIDC authenticatie flow met moderne tools.
+**Created for educational purposes** - Shows a complete OIDC authentication flow with modern tools.
