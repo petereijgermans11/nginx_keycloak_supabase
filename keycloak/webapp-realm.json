@@ -632,7 +632,7 @@
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
     "secret" : "ECHTE_SECRET",
-    "redirectUris" : [ "http://localhost:8080/*" ],
+    "redirectUris" : [ "http://localhost:8080/*", "http://localhost:8081/*" ],
     "webOrigins" : [ "http://localhost:8081", "http://localhost:8080" ],
     "notBefore" : 0,
     "bearerOnly" : false,
@@ -648,7 +648,7 @@
       "realm_client" : "false",
       "oidc.ciba.grant.enabled" : "false",
       "backchannel.logout.session.required" : "true",
-      "post.logout.redirect.uris" : "/*",
+      "post.logout.redirect.uris" : "+",
       "oauth2.device.authorization.grant.enabled" : "false",
       "display.on.consent.screen" : "false",
       "backchannel.logout.revoke.offline.tokens" : "false"
